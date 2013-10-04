@@ -1,5 +1,5 @@
 CREATE TABLE corp_name (
-	ID bigint CONSTRAINT id_key PRIMARY KEY,
+	ID varchar(20) CONSTRAINT id_key PRIMARY KEY,
 	name varchar(512) NOT NULL,
 	address varchar(2048),
 	org_date date,
