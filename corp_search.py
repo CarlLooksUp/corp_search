@@ -34,8 +34,6 @@ def getSearchResults(searchString):
         nextpage = nextpage + 1
         soup = BeautifulSoup(driver.page_source, "html5lib")
         processResultsPage(soup)
-	if nextpage > 4:
-            return
     
 def processResultsPage(soup):
     rows = soup.findAll('tr', class_=re.compile("Grid(Alt)?Row"))
