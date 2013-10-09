@@ -26,7 +26,7 @@ def getSearchResults(searchString):
     wait.until( EC.presence_of_element_located((By.ID, "MainContent_UpdatePanelGrid")))
 
 
-    next_page = 2 
+    next_page = 19 
 
     #len check runs with old soup
     while not finished:
@@ -41,6 +41,8 @@ def getSearchResults(searchString):
             next_page = next_page + 1
             soup = BeautifulSoup(driver.page_source, "html5lib")
             processResultsPage(soup)
+            if next_page > 25:
+                return
 
         next_links = soup.findAll('a', text="...")
         #after first 20, only one '...' link 
