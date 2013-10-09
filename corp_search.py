@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import psycopg2
 import re
+import string
 from datetime import datetime
 
 url = "http://corp.sec.state.ma.us/CorpWeb/CorpSearch/CorpSearch.aspx" 
@@ -26,7 +27,7 @@ def getSearchResults(searchString):
     wait.until( EC.presence_of_element_located((By.ID, "MainContent_UpdatePanelGrid")))
 
 
-    next_page = 19 
+    next_page = 2 
 
     #len check runs with old soup
     while not finished:
@@ -37,12 +38,10 @@ def getSearchResults(searchString):
         while soup.find('a', text=str(next_page)):
             next_link =  driver.find_element_by_link_text(str(next_page))
             next_link.click()
-            wait.until_not(EC.element_to_be_clickable((By.LINK_TEXT, str(next_page))))
+            wait.until(EC.staleness_of(next_link))
             next_page = next_page + 1
             soup = BeautifulSoup(driver.page_source, "html5lib")
             processResultsPage(soup)
-            if next_page > 25:
-                return
 
         next_links = soup.findAll('a', text="...")
         #after first 20, only one '...' link 
@@ -59,7 +58,7 @@ def getSearchResults(searchString):
 
         #instead of waiting for link to phase out, wait for new set of links
         next_page = next_page + 1
-        wait.until(EC.element_to_be_clickable((By.LINK_TEXT, str(next_page))))
+        wait.until(EC.presence_of_element_located((By.LINK_TEXT, str(next_page))))
 
 
             
@@ -73,8 +72,12 @@ def processResultsPage(soup):
         name = unicode(row.find('a').string)
         profile_url = row.find('a')['href']
         address1 = unicode(row.findAll('td')[3].contents[0])
-        address2 = unicode(row.findAll('td')[3].contents[2])
-	address = address1 + "\n" + address2
+        try:
+            address2 = unicode(row.findAll('td')[3].contents[2])
+        except IndexError:
+            address2 = ""
+
+        address = address1 + "\n" + address2
 
         try: 
             cur.execute("INSERT INTO corp_name (ID, name, address, profile_url) \
@@ -88,7 +91,11 @@ def processResultsPage(soup):
 
 
 log.write('Starting at ' + str(datetime.now().ctime()) + ':\n')
-getSearchResults("aa")
+for char in string.lowercase:
+    for char2 in string.lowercase:
+        search_string = char + char2
+        getSearchResults(search_string)
+
 driver.close()
 cur.close()
 db.close()
