@@ -53,12 +53,13 @@ def getSearchResults(searchString):
         else: #no continuation links
             finished = True
             continue
-            
+
+        prev_link = driver.find_element_by_link_text(str(next_page - 2))    
         next_link.click()
 
         #instead of waiting for link to phase out, wait for new set of links
         next_page = next_page + 1
-        wait.until(EC.presence_of_element_located((By.LINK_TEXT, str(next_page))))
+        wait.until(EC.staleness_of(prev_link))
 
 
             
@@ -69,11 +70,11 @@ def processResultsPage(soup):
     rows = soup.findAll('tr', class_=re.compile("Grid(Alt)?Row"))
     for row in rows:
         ID = unicode(row.findAll('td')[1].string)
-        name = unicode(row.find('a').string)
+        name = unicode(row.find('a').string).encode('utf-8')
         profile_url = row.find('a')['href']
-        address1 = unicode(row.findAll('td')[3].contents[0])
+        address1 = unicode(row.findAll('td')[3].contents[0]).encode('utf-8')
         try:
-            address2 = unicode(row.findAll('td')[3].contents[2])
+            address2 = unicode(row.findAll('td')[3].contents[2]).encode('utf-8')
         except IndexError:
             address2 = ""
 
